@@ -1,9 +1,21 @@
-const BASE_URL = "https://access-cab-283394852721.us-central1.run.app";
+const BASE_URL = process.env.REACT_APP_CAB_SERVICE_BASE_URL;
+
+if (!BASE_URL) {
+  console.warn(
+    "REACT_APP_CAB_SERVICE_BASE_URL is not set. Cab requests will fail until this environment variable is configured."
+  );
+}
 
 const CALL_ENDPOINT = `${BASE_URL}/call_cab`;
 const EMAIL_ENDPOINT = `${BASE_URL}/email_cab`;
 const STATUS_ENDPOINT = `${BASE_URL}/status`;
 const REQUEST_CALLBACK_ENDPOINT = `${BASE_URL}/request-callback`;
+
+const ensureBaseUrl = () => {
+  if (!BASE_URL) {
+    throw new Error("Cab service base URL is not configured.");
+  }
+};
 
 const createHeaders = (includeJson = false) => {
   const headers = new Headers({
@@ -35,6 +47,7 @@ const extractTrackingId = (payload) => {
 };
 
 export const startCabRequest = async ({ cab, from, to }) => {
+  ensureBaseUrl();
   if (!cab) {
     throw new Error("Cab details are required to initiate a request.");
   }
@@ -91,6 +104,7 @@ export const startCabRequest = async ({ cab, from, to }) => {
 };
 
 export const pollCabStatus = async ({ channel, trackingId }) => {
+  ensureBaseUrl();
   if (!trackingId) {
     return null;
   }
@@ -112,6 +126,7 @@ export const pollCabStatus = async ({ channel, trackingId }) => {
 };
 
 export const requestCabCallback = async ({ cab, from, to }) => {
+  ensureBaseUrl();
   if (!cab) {
     throw new Error("Cab details are required to request a callback.");
   }
