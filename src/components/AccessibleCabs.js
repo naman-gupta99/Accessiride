@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Bot, Phone, Mail } from "lucide-react";
+import { Bot, Phone, Mail, Check } from "lucide-react";
 import { ACCESSIBLE_CAB_COMPANIES } from "../utils/constants";
 import {
   startCabRequest,
@@ -191,6 +191,7 @@ export const AccessibleCabs = ({ setAnnouncement, from, to }) => {
       callSid: null,
       channel: null,
       requestingCallback: false,
+      callbackRequested: false,
     }));
 
     setBotResults(initial);
@@ -234,12 +235,25 @@ export const AccessibleCabs = ({ setAnnouncement, from, to }) => {
     try {
       await requestCabCallback({ cab, from, to });
       setAnnouncement(`Callback requested from ${cab.name}. They will contact you soon.`);
+      updateCabById(cab.id, (entry) => ({
+        ...entry,
+        requestingCallback: false,
+        callbackRequested: true,
+      }));
     } catch (error) {
       setAnnouncement(
         `Callback request to ${cab.name} failed: ${error.message || "Unknown error"}.`
       );
+      updateCabById(cab.id, (entry) => ({
+        ...entry,
+        requestingCallback: false,
+        callbackRequested: false,
+      }));
     } finally {
-      updateCabById(cab.id, (entry) => ({ ...entry, requestingCallback: false }));
+      updateCabById(cab.id, (entry) => ({
+        ...entry,
+        requestingCallback: false,
+      }));
     }
   };
 
@@ -379,17 +393,29 @@ export const AccessibleCabs = ({ setAnnouncement, from, to }) => {
                   disabled={
                     cab.unavailable ||
                     cab.unreachable ||
-                    cab.requestingCallback
+                    cab.requestingCallback ||
+                    cab.callbackRequested
                   }
                   className={`flex-1 text-sm rounded-lg px-3 py-2 ${
                     cab.unavailable ||
                     cab.unreachable ||
                     cab.requestingCallback
                       ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+                      : cab.callbackRequested
+                      ? "bg-green-500 text-white"
                       : "text-gray-700 dark:text-gray-200 bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500"
                   }`}
                 >
-                  {cab.requestingCallback ? "Requesting..." : "Callback"}
+                  {cab.requestingCallback ? (
+                    "Requesting..."
+                  ) : cab.callbackRequested ? (
+                    <span className="flex items-center justify-center gap-1">
+                      <Check size={18} aria-hidden="true" />
+                      <span className="sr-only">Callback requested</span>
+                    </span>
+                  ) : (
+                    "Callback"
+                  )}
                 </button>
                 </div>
               </div>
