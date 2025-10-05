@@ -1,15 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Accessibility, Volume2 as VolumeIcon, Annoyed, Sun, Moon, Save, Trash2, MapPin, Mic, SlidersHorizontal, Share2 } from 'lucide-react';
 
-// Import constants and helpers
 import { GOOGLE_MAPS_API_KEY, APP_URL, TRAVEL_MODES } from './utils/constants';
 
-// Import custom hooks
 import { useGoogleMaps } from './hooks/useGoogleMaps';
 import { useDataStorage } from './hooks/useDataStorage';
 import { useSpeechRecognition } from './hooks/useSpeechRecognition';
 
-// Import UI components
 import { VisuallyHidden } from './components/VisuallyHidden';
 import { IconWrapper } from './components/IconWrapper';
 import { AutocompleteInput } from './components/AutocompleteInput';
@@ -217,7 +214,8 @@ function App() {
   // ...existing code...
 
   return (
-    <div className={`min-h-screen bg-gray-50 dark:bg-gray-900 font-sans transition-colors duration-300`}>
+    <div className={`${darkMode ? 'dark' : ''} min-h-screen font-sans transition-colors duration-300`}>
+      <div className={`min-h-screen bg-gray-50 dark:bg-gray-900`}>
       {reportModal.isOpen && <ReportModal report={reportModal.data} onSubmit={handleReportSubmit} onClose={() => setReportModal({ isOpen: false, data: null })} onConfirm={handleConfirmReport} onResolve={handleResolveReport} />}
       {profileModalOpen && <AccessibilityProfileModal preferences={preferences} onSave={(newPrefs) => { savePreferences(newPrefs); setProfileModalOpen(false); }} onClose={() => setProfileModalOpen(false)} />}
       {indoorNavModal.isOpen && <IndoorNavigationModal stationName={indoorNavModal.stationName} onClose={() => setIndoorNavModal({ isOpen: false, stationName: ''})} />}
@@ -324,7 +322,7 @@ function App() {
                     <h3 className="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">Transportation Options</h3>
                     {searchResults.map(option => <ResultCard key={option.id} option={option} />)}
                   </div>
-                  {(travelMode === 'TRANSIT' || searchResults.some(r => r.type === 'Ride-Share')) && <AccessibleCabs setAnnouncement={setAnnouncement} />}
+                  {(travelMode === 'TRANSIT' || searchResults.some(r => r.type === 'Ride-Share')) && <AccessibleCabs setAnnouncement={setAnnouncement} from={from} to={to} />}
                 </div>
               )}
               {!isLoading && !error && searchResults.length === 0 && searched && (
@@ -340,6 +338,7 @@ function App() {
           <p className="text-sm text-gray-500 dark:text-gray-400">AccessiRide - Making transportation accessible for everyone</p>
         </footer>
       </div>
+    </div>
     </div>
   );
 }
