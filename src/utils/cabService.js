@@ -54,6 +54,20 @@ const extractTrackingId = (payload) => {
 
 const buildDummyTrackingId = (prefix = "cab") => `dummy-${prefix}-${Date.now()}`;
 
+const getRandomPickupTimeIso = () => {
+  const minMinutes = 15;
+  const maxMinutes = 30;
+  const randomMinutes = minMinutes + Math.random() * (maxMinutes - minMinutes);
+  return new Date(Date.now() + randomMinutes * 60000).toISOString();
+};
+
+const getRandomEstimatedFare = () => {
+  const minFare = 20;
+  const maxFare = 30;
+  const randomFare = minFare + Math.random() * (maxFare - minFare);
+  return Number(randomFare.toFixed(2));
+};
+
 const startCabRequestDummy = async ({ cab }) => {
   if (!cab) {
     throw new Error("Cab details are required to initiate a request.");
@@ -80,7 +94,11 @@ const pollCabStatusDummy = async ({ channel, trackingId }) => {
   return {
     trackingId,
     channel,
-    status: "pending",
+    correct_dispatcher: true,
+    taxi_available: true,
+    earliest_pickup_time: getRandomPickupTimeIso(),
+    estimated_fare: getRandomEstimatedFare(),
+    status_message: "Cab confirmed via dummy service",
     updatedAt: new Date().toISOString(),
   };
 };
