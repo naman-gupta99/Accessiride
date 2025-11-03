@@ -223,7 +223,7 @@ function App() {
       
       <div className="container mx-auto p-4 sm:p-6 max-w-2xl">
         <header className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl sm:text-4xl font-bold text-blue-600 dark:text-blue-400">AccessiRide</h1>
+          <h1 className="text-3xl sm:text-4xl font-bold text-blue-600 dark:text-blue-400">MobilU</h1>
           <div className="flex items-center gap-2">
             <button onClick={() => setQrModalOpen(true)} className="p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500" aria-label="Share App">
                 <Share2 size={20} />
@@ -335,7 +335,7 @@ function App() {
           )}
         </main>
         <footer className="text-center mt-8 py-4">
-          <p className="text-sm text-gray-500 dark:text-gray-400">AccessiRide - Making transportation accessible for everyone</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">MobilU - Making transportation accessible for everyone</p>
         </footer>
       </div>
     </div>

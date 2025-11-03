@@ -1,6 +1,7 @@
 const BASE_URL = process.env.REACT_APP_CAB_SERVICE_BASE_URL;
+const USE_DUMMY_SERVICE = process.env.REACT_APP_USE_DUMMY_CAB_SERVICE === "true";
 
-if (!BASE_URL) {
+if (!BASE_URL && !USE_DUMMY_SERVICE) {
   console.warn(
     "REACT_APP_CAB_SERVICE_BASE_URL is not set. Cab requests will fail until this environment variable is configured."
   );
@@ -12,10 +13,15 @@ const STATUS_ENDPOINT = `${BASE_URL}/status`;
 const REQUEST_CALLBACK_ENDPOINT = `${BASE_URL}/request-callback`;
 
 const ensureBaseUrl = () => {
+  if (USE_DUMMY_SERVICE) {
+    return;
+  }
   if (!BASE_URL) {
     throw new Error("Cab service base URL is not configured.");
   }
 };
+
+const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const createHeaders = (includeJson = false) => {
   const headers = new Headers({
@@ -46,7 +52,58 @@ const extractTrackingId = (payload) => {
   );
 };
 
-export const startCabRequest = async ({ cab, from, to }) => {
+const buildDummyTrackingId = (prefix = "cab") => `dummy-${prefix}-${Date.now()}`;
+
+const startCabRequestDummy = async ({ cab }) => {
+  if (!cab) {
+    throw new Error("Cab details are required to initiate a request.");
+  }
+
+  if (cab.phone) {
+    return { trackingId: buildDummyTrackingId("phone"), channel: "phone" };
+  }
+
+  if (cab.email) {
+    return { trackingId: buildDummyTrackingId("email"), channel: "email" };
+  }
+
+  throw new Error("No phone number or email available for this cab.");
+};
+
+const pollCabStatusDummy = async ({ channel, trackingId }) => {
+  if (!trackingId) {
+    return null;
+  }
+
+  await delay(3000);
+
+  return {
+    trackingId,
+    channel,
+    status: "pending",
+    updatedAt: new Date().toISOString(),
+  };
+};
+
+const requestCabCallbackDummy = async ({ cab, from, to }) => {
+  if (!cab) {
+    throw new Error("Cab details are required to request a callback.");
+  }
+
+  if (!cab.phone && !cab.email) {
+    throw new Error("No contact information available for callback request.");
+  }
+
+  return {
+    success: true,
+    referenceId: buildDummyTrackingId("callback"),
+    channel: cab.phone ? "phone" : "email",
+    source: from || "Unknown Location",
+    destination: to || "Unknown Destination",
+  };
+};
+
+const startCabRequestReal = async ({ cab, from, to }) => {
   ensureBaseUrl();
   if (!cab) {
     throw new Error("Cab details are required to initiate a request.");
@@ -103,7 +160,7 @@ export const startCabRequest = async ({ cab, from, to }) => {
   throw new Error("No phone number or email available for this cab.");
 };
 
-export const pollCabStatus = async ({ channel, trackingId }) => {
+const pollCabStatusReal = async ({ channel, trackingId }) => {
   ensureBaseUrl();
   if (!trackingId) {
     return null;
@@ -125,7 +182,7 @@ export const pollCabStatus = async ({ channel, trackingId }) => {
   return payload && !payload.raw ? payload : null;
 };
 
-export const requestCabCallback = async ({ cab, from, to }) => {
+const requestCabCallbackReal = async ({ cab, from, to }) => {
   ensureBaseUrl();
   if (!cab) {
     throw new Error("Cab details are required to request a callback.");
@@ -163,3 +220,12 @@ export const requestCabCallback = async ({ cab, from, to }) => {
 
   return parseTextResponse(response);
 };
+
+export const startCabRequest = async (args) =>
+  USE_DUMMY_SERVICE ? startCabRequestDummy(args) : startCabRequestReal(args);
+
+export const pollCabStatus = async (args) =>
+  USE_DUMMY_SERVICE ? pollCabStatusDummy(args) : pollCabStatusReal(args);
+
+export const requestCabCallback = async (args) =>
+  USE_DUMMY_SERVICE ? requestCabCallbackDummy(args) : requestCabCallbackReal(args);
